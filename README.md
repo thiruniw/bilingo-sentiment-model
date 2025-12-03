@@ -5,7 +5,7 @@
 [![Transformers](https://img.shields.io/badge/Transformers-4.30+-orange.svg)](https://huggingface.co/transformers/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A bilingual sentiment analysis system for **Sinhala** and **English** text, powered by XLM-RoBERTa transformer model. This application detects sentiment (positive, negative, or neutral) from user input with a modern, user-friendly web interface built with Streamlit.
+An AI-powered bilingual sentiment analysis tool for Sinhala and English text. Built using Streamlit for the interface and XLM-RoBERTa transformer models for accurate real-time sentiment detection. Ideal for businesses and researchers to analyze customer feedback and social media content in both languages.
 
 ---
 
