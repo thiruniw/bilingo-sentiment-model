@@ -1,4 +1,4 @@
-# train_cpu_friendly.py
+# train.py
 
 # Imports
 import pandas as pd
@@ -8,6 +8,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trai
 import torch
 from sklearn.preprocessing import LabelEncoder
 import joblib
+import os
 
 # ----------------------------
 # 1️⃣ Load datasets
@@ -58,7 +59,6 @@ for idx, label in enumerate(le.classes_):
 print()
 
 # Save label encoder
-import os
 os.makedirs("models", exist_ok=True)
 joblib.dump(le, "models/label_encoder.pkl")
 
@@ -97,7 +97,7 @@ print(f"Training model with {num_labels} labels: {list(le.classes_)}\n")
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=num_labels)
 
 # ----------------------------
-# 6️⃣ Training Arguments
+# 6️⃣ Training Arguments (FIXED)
 # ----------------------------
 training_args = TrainingArguments(
     output_dir="models",
@@ -109,9 +109,9 @@ training_args = TrainingArguments(
     logging_dir="logs",
     logging_steps=200,
     save_strategy="epoch",               # ✅ Save each epoch
-    evaluation_strategy="epoch",         # ✅ Evaluate each epoch
+    eval_strategy="epoch",               # ✅ FIXED: Changed from evaluation_strategy
     report_to="none",
-    no_cuda=True,
+    use_cpu=True,                        # ✅ FIXED: Changed from no_cuda=True
     fp16=False,
     dataloader_num_workers=0,
     load_best_model_at_end=True,         # ✅ Load best model
