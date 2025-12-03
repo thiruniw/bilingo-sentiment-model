@@ -1,8 +1,15 @@
 # app.py
 import streamlit as st
 import sys, os
+import warnings
+
+# Suppress all warnings before imports
+warnings.filterwarnings('ignore')
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+
 sys.path.append(os.path.abspath("../src"))
-from predict import predict_sentiment
+from predict import load_artifacts, predict_sentiment
 
 # Streamlit Page Config
 st.set_page_config(
@@ -192,6 +199,13 @@ label {
 </style>
 """, unsafe_allow_html=True)
 
+# Load model artifacts once (cached)
+@st.cache_resource
+def load_model():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return load_artifacts()
+
 # Title Section
 st.markdown("<h1>📝 Bilingo Sentiment Analysis</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Advanced AI-powered sentiment detection for Sinhala & English text</p>", unsafe_allow_html=True)
@@ -205,6 +219,13 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Load model
+try:
+    tokenizer, model, label_encoder = load_model()
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
+
 # User Input
 user_input = st.text_area("Enter your text here:", placeholder="Type or paste your text here...")
 
@@ -212,7 +233,7 @@ user_input = st.text_area("Enter your text here:", placeholder="Type or paste yo
 if st.button("🔍 Analyze Sentiment"):
     if user_input.strip() != "":
         with st.spinner("Analyzing sentiment..."):
-            sentiment = predict_sentiment(user_input)
+            sentiment = predict_sentiment(user_input, tokenizer, model, label_encoder, show_details=False)
         
         # Display result with professional styling
         sentiment_lower = sentiment.lower()
