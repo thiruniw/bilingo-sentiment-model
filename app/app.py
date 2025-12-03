@@ -10,9 +10,11 @@ warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
-sys.path.append(os.path.abspath("../src"))
-from predict import load_artifacts, predict_sentiment
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_PATH = os.path.join(CURRENT_DIR, "..", "src")
+sys.path.append(SRC_PATH)
 
+from predict import load_artifacts, predict_sentiment
 # Streamlit Page Config
 st.set_page_config(
     page_title="Bilingo Sentiment Analysis",
