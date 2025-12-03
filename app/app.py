@@ -2,6 +2,8 @@
 import streamlit as st
 import sys, os
 import warnings
+from datetime import datetime
+import pandas as pd
 
 # Suppress all warnings before imports
 warnings.filterwarnings('ignore')
@@ -15,11 +17,11 @@ from predict import load_artifacts, predict_sentiment
 st.set_page_config(
     page_title="Bilingo Sentiment Analysis",
     page_icon="📝",
-    layout="centered",
-    initial_sidebar_state="expanded"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Enhanced CSS for professional styling
+# Enhanced CSS for professional styling with TOP NAV BAR
 st.markdown("""
 <style>
 /* Force white background everywhere */
@@ -33,55 +35,98 @@ body {
 
 .main {
     background-color: #ffffff !important;
-    padding: 2rem;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 [data-testid="stAppViewContainer"] {
     background-color: #ffffff !important;
+    padding-top: 0 !important;
 }
 
 [data-testid="stHeader"] {
     background-color: #ffffff !important;
 }
 
+/* TOP NAVIGATION BAR */
+.top-nav {
+    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+    padding: 20px 50px;
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    margin: 0;
+    width: 100%;
+}
+
+.nav-brand {
+    color: white !important;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin: 0;
+    padding: 0;
+}
+
+/* Hide default streamlit header */
+header[data-testid="stHeader"] {
+    display: none;
+}
+
+/* Main content area */
+.content-area {
+    padding: 40px 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
 /* Title styling */
 h1 {
-    color: #0066cc !important;
-    font-size: 48px !important;
+    color: #000000 !important;
+    font-size: 42px !important;
     font-weight: 700 !important;
     text-align: center !important;
     margin-bottom: 10px !important;
-    letter-spacing: 1px !important;
 }
 
-.main h1 {
-    color: #0066cc !important;
+h2 {
+    color: #000000 !important;
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    margin-top: 30px !important;
 }
 
-[data-testid="stMarkdownContainer"] h1 {
-    color: #0066cc !important;
+h3 {
+    color: #000000 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
 }
 
-/* Subtitle/description text */
+p, div, span, label {
+    color: #000000 !important;
+}
+
+/* Subtitle */
 .subtitle {
-    color: #1a237e;
-    font-size: 20px;
+    color: #000000 !important;
+    font-size: 18px;
     text-align: center;
     margin-bottom: 40px;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 /* Labels */
 label {
-    color: #1a237e !important;
-    font-size: 22px !important;
+    color: #000000 !important;
+    font-size: 18px !important;
     font-weight: 600 !important;
-    margin-bottom: 10px !important;
 }
 
 /* Text area styling */
 .stTextArea>div>div>textarea {
-    font-size: 20px !important;
+    font-size: 18px !important;
     color: #000000 !important;
     background-color: #ffffff !important;
     border: 3px solid #1a237e !important;
@@ -91,38 +136,53 @@ label {
 }
 
 .stTextArea>div>div>textarea::placeholder {
-    color: #757575 !important;
-    opacity: 1 !important;
+    color: #666666 !important;
 }
 
 .stTextArea>div>div>textarea:focus {
     border-color: #3949ab !important;
     box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.2) !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
+}
+
+/* Navigation buttons styling */
+.nav-buttons {
+    margin-top: -70px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 50px;
 }
 
 /* Button styling */
 .stButton>button {
-    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
-    color: white;
-    font-size: 22px;
-    font-weight: 600;
-    padding: 16px 48px;
-    border-radius: 12px;
-    border: none;
-    width: 100%;
-    margin-top: 20px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #1a237e !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    border: 2px solid white !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 .stButton>button:hover {
-    background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
-    box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
-    transform: translateY(-2px);
+    background: white !important;
+    color: #0d47a1 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Analyze button - different style */
+.analyze-btn button {
+    background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%) !important;
+    color: white !important;
+    font-size: 18px !important;
+    padding: 14px 40px !important;
+}
+
+.analyze-btn button:hover {
+    background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%) !important;
 }
 
 /* Result container */
@@ -137,7 +197,7 @@ label {
 }
 
 .result-label {
-    color: #1a237e;
+    color: #000000 !important;
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 15px;
@@ -154,111 +214,383 @@ label {
 }
 
 .positive-sentiment {
-    color: #1b5e20;
+    color: #1b5e20 !important;
     background-color: #e8f5e9;
     border: 2px solid #4caf50;
 }
 
 .negative-sentiment {
-    color: #b71c1c;
+    color: #b71c1c !important;
     background-color: #ffebee;
     border: 2px solid #f44336;
 }
 
 .neutral-sentiment {
-    color: #e65100;
+    color: #e65100 !important;
     background-color: #fff3e0;
     border: 2px solid #ff9800;
 }
 
-/* Warning styling */
-.stWarning {
-    background-color: #fff3cd;
-    color: #856404;
-    font-size: 18px;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #ffc107;
+/* History item */
+.history-item {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 5px solid #1a237e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Input instruction box */
-.instruction-box {
+.history-text {
+    color: #000000 !important;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.history-meta {
+    color: #000000 !important;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Stats */
+.stat-box {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+    font-size: 42px;
+    font-weight: 700;
+    color: #1a237e !important;
+}
+
+.stat-label {
+    font-size: 16px;
+    color: #000000 !important;
+    margin-top: 8px;
+}
+
+/* Info box */
+.info-box {
     background-color: #e3f2fd;
     padding: 20px;
     border-radius: 12px;
-    margin-bottom: 25px;
     border-left: 5px solid #1a237e;
+    margin: 20px 0;
 }
 
-.instruction-text {
-    color: #1a237e;
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
+.info-box p {
+    color: #000000 !important;
+    margin: 5px 0;
 }
+
+/* Metric override */
+[data-testid="stMetricValue"] {
+    color: #000000 !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #000000 !important;
+}
+            
+.nav-btn-group {
+    display: flex;
+    align-items: right;
+    gap: 15px;            /* spacing between buttons */
+    margin-left:1420px;
+}
+
+.nav-btn-group button {
+    background: white !important;
+    color: #1a237e !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: 0.2s ease;
+}
+
+.nav-btn-group button:hover {
+    background: #e3e3e3 !important;
+}
+
+
 </style>
 """, unsafe_allow_html=True)
 
-# Load model artifacts once (cached)
+# Initialize session state
+if 'history' not in st.session_state:
+    st.session_state.history = []
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = "Home"
+
+
+# ======================================================
+# TOP NAV BAR WITH BUTTONS MOVED *INSIDE* THE BLUE BAR
+# ======================================================
+st.markdown("""
+<div class="top-nav">
+    <div class="nav-brand">📝 BILINGO SENTIMENT ANALYZER</div>
+    <div class="nav-btn-group">
+        <form action="/?nav=Home" method="get">
+            <button>🏠 Home</button>
+        </form>
+        <form action="/?nav=History" method="get">
+            <button>📜 History</button>
+        </form>
+        <form action="/?nav=About" method="get">
+            <button>ℹ️ About</button>
+        </form>
+    </div>>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+# Sync URL buttons
+page = st.query_params.get("page")
+if page:
+    st.session_state.current_page = page
+
+# =======================
+# LOAD MODEL
+# =======================
 @st.cache_resource
 def load_model():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         return load_artifacts()
 
-# Title Section
-st.markdown("<h1>📝 Bilingo Sentiment Analysis</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle'>Advanced AI-powered sentiment detection for Sinhala & English text</p>", unsafe_allow_html=True)
+st.markdown('<div class="content-area">', unsafe_allow_html=True)
 
-# Instruction Box
-st.markdown("""
-<div class='instruction-box'>
-    <p class='instruction-text'>
-        💡 Enter your text below in Sinhala or English for instant sentiment analysis
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-# Load model
 try:
     tokenizer, model, label_encoder = load_model()
 except Exception as e:
     st.error(f"Error loading model: {e}")
     st.stop()
 
-# User Input
-user_input = st.text_area("Enter your text here:", placeholder="Type or paste your text here...")
-
-# Prediction Button
-if st.button("🔍 Analyze Sentiment"):
-    if user_input.strip() != "":
-        with st.spinner("Analyzing sentiment..."):
-            sentiment = predict_sentiment(user_input, tokenizer, model, label_encoder, show_details=False)
+# ============================================================================
+# HOME PAGE
+# ============================================================================
+if st.session_state.current_page == "Home":
+    st.title("🏠 Sentiment Analysis")
+    st.markdown("<p class='subtitle'>Enter text in Sinhala or English to detect sentiment</p>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        user_input = st.text_area(
+            "Enter your text:",
+            placeholder="Type your text here...",
+            height=200
+        )
         
-        # Display result with professional styling
-        sentiment_lower = sentiment.lower()
+        st.markdown('<div class="analyze-btn">', unsafe_allow_html=True)
+        analyze_button = st.button("🔍 Analyze Sentiment", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        if sentiment_lower == "positive":
-            sentiment_class = "positive-sentiment"
-            emoji = "😊"
-        elif sentiment_lower == "negative":
-            sentiment_class = "negative-sentiment"
-            emoji = "😞"
-        else:
-            sentiment_class = "neutral-sentiment"
-            emoji = "😐"
+        if st.button("🗑️ Clear", use_container_width=True):
+            st.rerun()
+    
+    with col2:
+        st.markdown('<div class="info-box">', unsafe_allow_html=True)
+        st.markdown("### 💡 Quick Guide")
+        st.markdown("""
+        **Supported:**
+        - 🇱🇰 Sinhala text
+        - 🇬🇧 English text
         
-        st.markdown(f"""
-        <div class='result-container'>
-            <div class='result-label'>Predicted Sentiment:</div>
-            <div class='result-sentiment {sentiment_class}'>
-                {emoji} {sentiment.upper()}
+        **Tips:**
+        - Use complete sentences
+        - Keep under 128 words
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Prediction
+    if analyze_button:
+        if user_input.strip() != "":
+            with st.spinner("Analyzing..."):
+                sentiment = predict_sentiment(user_input, tokenizer, model, label_encoder, show_details=False)
+            
+            # Add to history
+            st.session_state.history.insert(0, {
+                'text': user_input,
+                'sentiment': sentiment,
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            # Display result
+            sentiment_lower = sentiment.lower()
+            
+            if sentiment_lower == "positive":
+                sentiment_class = "positive-sentiment"
+                emoji = "😊"
+            elif sentiment_lower == "negative":
+                sentiment_class = "negative-sentiment"
+                emoji = "😞"
+            else:
+                sentiment_class = "neutral-sentiment"
+                emoji = "😐"
+            
+            st.markdown(f"""
+            <div class='result-container'>
+                <div class='result-label'>Predicted Sentiment:</div>
+                <div class='result-sentiment {sentiment_class}'>
+                    {emoji} {sentiment.upper()}
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+            
+            st.success("✅ Prediction saved to history!")
+        else:
+            st.warning("⚠️ Please enter some text to analyze!")
+    
+    # Quick stats
+    if len(st.session_state.history) > 0:
+        st.markdown("---")
+        st.subheader("📊 Quick Stats")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        sentiments = [item['sentiment'].lower() for item in st.session_state.history]
+        
+        with col1:
+            st.markdown(f"""
+            <div class="stat-box">
+                <div class="stat-number">{len(st.session_state.history)}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            positive_count = sentiments.count('positive')
+            st.markdown(f"""
+            <div class="stat-box">
+                <div class="stat-number">{positive_count}</div>
+                <div class="stat-label">Positive</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            negative_count = sentiments.count('negative')
+            st.markdown(f"""
+            <div class="stat-box">
+                <div class="stat-number">{negative_count}</div>
+                <div class="stat-label">Negative</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col4:
+            neutral_count = sentiments.count('neutral')
+            st.markdown(f"""
+            <div class="stat-box">
+                <div class="stat-number">{neutral_count}</div>
+                <div class="stat-label">Neutral</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+# ============================================================================
+# HISTORY PAGE
+# ============================================================================
+elif st.session_state.current_page == "History":
+    st.title("📜 Prediction History")
+    
+    if len(st.session_state.history) == 0:
+        st.info("📭 No predictions yet! Go to Home to analyze some text.")
     else:
-        st.warning("⚠️ Please enter some text to analyze!")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**Total Predictions:** {len(st.session_state.history)}")
+        with col2:
+            if st.button("🗑️ Clear All History"):
+                st.session_state.history = []
+                st.rerun()
+        
+        st.markdown("---")
+        
+        # Display history
+        for idx, item in enumerate(st.session_state.history):
+            sentiment_lower = item['sentiment'].lower()
+            
+            if sentiment_lower == "positive":
+                emoji = "😊"
+                badge_color = "#4caf50"
+            elif sentiment_lower == "negative":
+                emoji = "😞"
+                badge_color = "#f44336"
+            else:
+                emoji = "😐"
+                badge_color = "#ff9800"
+            
+            st.markdown(f"""
+            <div class="history-item">
+                <div class="history-text"><strong>#{idx + 1}:</strong> {item['text']}</div>
+                <div class="history-meta">
+                    <span style="background-color: {badge_color}; color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
+                        {emoji} {item['sentiment'].upper()}
+                    </span>
+                    <span style="color: #666;">{item['timestamp']}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Export option
+        st.markdown("---")
+        if st.button("📥 Export to CSV"):
+            df = pd.DataFrame(st.session_state.history)
+            csv = df.to_csv(index=False)
+            st.download_button(
+                "Download CSV",
+                csv,
+                "sentiment_history.csv",
+                "text/csv"
+            )
+
+# ============================================================================
+# ABOUT PAGE
+# ============================================================================
+elif st.session_state.current_page == "About":
+    st.title("ℹ️ About Bilingo")
+    
+    st.markdown("""
+    ### 🎯 What is Bilingo?
+    
+    Bilingo is an AI-powered sentiment analysis tool for **Sinhala** and **English** text. 
+    It uses transformer models to detect positive, negative, or neutral sentiment.
+    
+    ### 🤖 Technology
+    
+    - **Model:** XLM-RoBERTa (Multilingual)
+    - **Framework:** PyTorch + Transformers
+    - **Interface:** Streamlit
+    
+    ### 🌟 Features
+    
+    - ✅ Bilingual support (Sinhala & English)
+    - ✅ Real-time analysis
+    - ✅ Prediction history
+    - ✅ Export to CSV
+    
+    ### 👨‍💻 Developer
+    
+    Created by **Thiruni Wijerathne**  
+    GitHub: [@thiruniw](https://github.com/thiruniw)
+    
+    ---
+    
+    **Made with ❤️ for bilingual NLP**
+    """)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #757575; font-size: 16px;'> Machine Learning | Bilingo AI</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666666; font-size: 14px;'>Bilingo AI © 2025</p>", unsafe_allow_html=True)
