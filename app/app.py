@@ -283,11 +283,13 @@ label {
     border-radius: 12px;
     border-left: 5px solid #1a237e;
     margin: 20px 0;
+    
 }
 
 .info-box p {
     color: #000000 !important;
     margin: 5px 0;
+    text-align: center;
 }
 
 /* Metric override */
@@ -340,17 +342,6 @@ if 'current_page' not in st.session_state:
 st.markdown("""
 <div class="top-nav">
     <div class="nav-brand">📝 BILINGO SENTIMENT ANALYZER</div>
-    <div class="nav-btn-group">
-        <form action="/?nav=Home" method="get">
-            <button>🏠 Home</button>
-        </form>
-        <form action="/?nav=History" method="get">
-            <button>📜 History</button>
-        </form>
-        <form action="/?nav=About" method="get">
-            <button>ℹ️ About</button>
-        </form>
-    </div>>
 </div>
 </div>
 """, unsafe_allow_html=True)
@@ -397,16 +388,14 @@ if st.session_state.current_page == "Home":
         analyze_button = st.button("🔍 Analyze Sentiment", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
-        if st.button("🗑️ Clear", use_container_width=True):
-            st.rerun()
     
     with col2:
         st.markdown('<div class="info-box">', unsafe_allow_html=True)
         st.markdown("### 💡 Quick Guide")
         st.markdown("""
         **Supported:**
-        - 🇱🇰 Sinhala text
-        - 🇬🇧 English text
+        - Sinhala text
+        - English text
         
         **Tips:**
         - Use complete sentences
@@ -448,149 +437,7 @@ if st.session_state.current_page == "Home":
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
-            st.success("✅ Prediction saved to history!")
         else:
             st.warning("⚠️ Please enter some text to analyze!")
     
-    # Quick stats
-    if len(st.session_state.history) > 0:
-        st.markdown("---")
-        st.subheader("📊 Quick Stats")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        sentiments = [item['sentiment'].lower() for item in st.session_state.history]
-        
-        with col1:
-            st.markdown(f"""
-            <div class="stat-box">
-                <div class="stat-number">{len(st.session_state.history)}</div>
-                <div class="stat-label">Total</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            positive_count = sentiments.count('positive')
-            st.markdown(f"""
-            <div class="stat-box">
-                <div class="stat-number">{positive_count}</div>
-                <div class="stat-label">Positive</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            negative_count = sentiments.count('negative')
-            st.markdown(f"""
-            <div class="stat-box">
-                <div class="stat-number">{negative_count}</div>
-                <div class="stat-label">Negative</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col4:
-            neutral_count = sentiments.count('neutral')
-            st.markdown(f"""
-            <div class="stat-box">
-                <div class="stat-number">{neutral_count}</div>
-                <div class="stat-label">Neutral</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-# ============================================================================
-# HISTORY PAGE
-# ============================================================================
-elif st.session_state.current_page == "History":
-    st.title("📜 Prediction History")
-    
-    if len(st.session_state.history) == 0:
-        st.info("📭 No predictions yet! Go to Home to analyze some text.")
-    else:
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.write(f"**Total Predictions:** {len(st.session_state.history)}")
-        with col2:
-            if st.button("🗑️ Clear All History"):
-                st.session_state.history = []
-                st.rerun()
-        
-        st.markdown("---")
-        
-        # Display history
-        for idx, item in enumerate(st.session_state.history):
-            sentiment_lower = item['sentiment'].lower()
-            
-            if sentiment_lower == "positive":
-                emoji = "😊"
-                badge_color = "#4caf50"
-            elif sentiment_lower == "negative":
-                emoji = "😞"
-                badge_color = "#f44336"
-            else:
-                emoji = "😐"
-                badge_color = "#ff9800"
-            
-            st.markdown(f"""
-            <div class="history-item">
-                <div class="history-text"><strong>#{idx + 1}:</strong> {item['text']}</div>
-                <div class="history-meta">
-                    <span style="background-color: {badge_color}; color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
-                        {emoji} {item['sentiment'].upper()}
-                    </span>
-                    <span style="color: #666;">{item['timestamp']}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Export option
-        st.markdown("---")
-        if st.button("📥 Export to CSV"):
-            df = pd.DataFrame(st.session_state.history)
-            csv = df.to_csv(index=False)
-            st.download_button(
-                "Download CSV",
-                csv,
-                "sentiment_history.csv",
-                "text/csv"
-            )
-
-# ============================================================================
-# ABOUT PAGE
-# ============================================================================
-elif st.session_state.current_page == "About":
-    st.title("ℹ️ About Bilingo")
-    
-    st.markdown("""
-    ### 🎯 What is Bilingo?
-    
-    Bilingo is an AI-powered sentiment analysis tool for **Sinhala** and **English** text. 
-    It uses transformer models to detect positive, negative, or neutral sentiment.
-    
-    ### 🤖 Technology
-    
-    - **Model:** XLM-RoBERTa (Multilingual)
-    - **Framework:** PyTorch + Transformers
-    - **Interface:** Streamlit
-    
-    ### 🌟 Features
-    
-    - ✅ Bilingual support (Sinhala & English)
-    - ✅ Real-time analysis
-    - ✅ Prediction history
-    - ✅ Export to CSV
-    
-    ### 👨‍💻 Developer
-    
-    Created by **Thiruni Wijerathne**  
-    GitHub: [@thiruniw](https://github.com/thiruniw)
-    
-    ---
-    
-    **Made with ❤️ for bilingual NLP**
-    """)
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Footer
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666666; font-size: 14px;'>Bilingo AI © 2025</p>", unsafe_allow_html=True)
+   
